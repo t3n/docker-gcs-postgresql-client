@@ -4,7 +4,17 @@ FROM alpine AS builder
 ENV QEMU_URL https://github.com/balena-io/qemu/releases/download/v3.0.0%2Bresin/qemu-3.0.0+resin-arm.tar.gz
 RUN apk add curl && curl -L ${QEMU_URL} | tar zxvf - -C . --strip-components 1
 
-FROM google/cloud-sdk:alpine
+FROM arm32v7/alpine:3.12.0
 
 COPY --from=builder qemu-arm-static /usr/bin
-RUN apk --update --no-cache add postgresql-client
+
+RUN apk --update --no-cache add postgresql-client python3
+
+RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-301.0.0-linux-x86.tar.gz && \
+    tar xfvz google-cloud-sdk-301.0.0-linux-x86.tar.gz && \
+    cd google-cloud-sdk/ && \
+    sh install.sh
+
+RUN rm -rf google-cloud-sdk-301.0.0-linux-x86.tar.gz
+
+ENV PATH=/google-cloud-sdk/bin:::/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
